@@ -54,3 +54,45 @@ def plot_lognormal(S, r, sigma, T):
     pngData = base64.b64encode(pngImage.getvalue()).decode('ascii')
     plt.close(fig)  # Close the figure to free up memory
     return pngData
+
+def binomial_option_pricing(S, K, T, r, sigma, N, option_type='call'):
+    """
+    Calculates the Binomial option price.
+
+    Parameters:
+    - S: Current stock price
+    - K: Strike price
+    - T: Time to expiration in years
+    - r: Risk-free interest rate
+    - sigma: Volatility of the underlying asset
+    - N: Number of time steps
+    - option_type: 'call' or 'put'
+
+    Returns:
+    - Option price
+    """
+    dt = T / N
+    u = np.exp(sigma * np.sqrt(dt))
+    d = 1 / u
+    p = (np.exp(r * dt) - d) / (u - d)
+    discount = np.exp(-r * dt)
+
+    # Initialize asset prices at maturity
+    ST = np.zeros(N + 1)
+    for i in range(N + 1):
+        ST[i] = S * (u ** (N - i)) * (d ** i)
+    
+    # Initialize option values at maturity
+    if option_type == 'call':
+        option_values = np.maximum(0, ST - K)
+    elif option_type == 'put':
+        option_values = np.maximum(0, K - ST)
+    else:
+        raise ValueError("option_type must be 'call' or 'put'")
+
+    # Backward induction to calculate option price
+    for j in range(N - 1, -1, -1):
+        for i in range(j + 1):
+            option_values[i] = (p * option_values[i] + (1 - p) * option_values[i + 1]) * discount
+
+    return option_values[0]

@@ -4,38 +4,46 @@
     <title>Option Pricing App</title>
 </head>
 <body>
-    <h1>Black-Scholes Option Pricing</h1>
+    <h1>Black-Scholes and Binomial Option Pricing</h1>
     <form method="post">
         <div>
             <label for="S">Stock Price (S):</label>
-            <input type="number" id="S" name="S" step="0.01" required><br>
+            <input type="number" id="S" name="S" step="0.01" value="{{ S or '100' }}" required><br>
         </div>
         <div>
             <label for="K">Strike Price (K):</label>
-            <input type="number" id="K" name="K" step="0.01" required><br>
+            <input type="number" id="K" name="K" step="0.01" value="{{ K or '110' }}" required><br>
         </div>
-
         <div>
             <label for="T">Time to Expiration (T in years):</label>
-            <input type="number" id="T" name="T" step="0.01" required><br>
+            <input type="number" id="T" name="T" step="0.01" value="{{ T or '1' }}" required><br>
         </div>
-
         <div>
             <label for="r">Risk-free Rate (r):</label>
-            <input type="number" id="r" name="r" step="0.0001" required><br>
+            <input type="number" id="r" name="r" step="0.0001" value="{{ r or '0.05' }}" required><br>
         </div>
-
         <div>
             <label for="sigma">Volatility (σ):</label>
-            <input type="number" id="sigma" name="sigma" step="0.0001" required><br>
+            <input type="number" id="sigma" name="sigma" step="0.0001" value="{{ sigma or '0.2' }}" required><br>
         </div>
-
-        <label for="option_type">Option Type:</label>
-        <select id="option_type" name="option_type">
-            <option value="call">Call</option>
-            <option value="put">Put</option>
-        </select><br><br>
-
+        <div>
+            <label for="option_type">Option Type:</label>
+            <select id="option_type" name="option_type">
+                <option value="call" {% if option_type == 'call' %}selected{% endif %}>Call</option>
+                <option value="put" {% if option_type == 'put' %}selected{% endif %}>Put</option>
+            </select><br><br>
+        </div>
+        <div>
+            <label for="model">Pricing Model:</label>
+            <select id="model" name="model">
+                <option value="black_scholes" {% if model == 'black_scholes' %}selected{% endif %}>Black-Scholes</option>
+                <option value="binomial" {% if model == 'binomial' %}selected{% endif %}>Binomial</option>
+            </select><br><br>
+        </div>
+        <div id="binomial-steps" style="display: none;">
+            <label for="N">Number of Steps (N):</label>
+            <input type="number" id="N" name="N" min="1" step="1" value="{{ N or '50' }}"><br>
+        </div>
         <input type="submit" value="Calculate">
     </form>
 
@@ -47,5 +55,27 @@
         <h2>Lognormal Distribution of Stock Price at Expiration</h2>
         <img src="data:image/png;base64,{{ plot_url }}">
     {% endif %}
+
+    <script>
+        document.getElementById('model').addEventListener('change', function() {
+            var binomialSteps = document.getElementById('binomial-steps');
+            if (this.value === 'binomial') {
+                binomialSteps.style.display = 'block';
+            } else {
+                binomialSteps.style.display = 'none';
+            }
+        });
+
+        // Ensure the correct display state on initial load
+        window.onload = function() {
+            var model = document.getElementById('model').value;
+            var binomialSteps = document.getElementById('binomial-steps');
+            if (model === 'binomial') {
+                binomialSteps.style.display = 'block';
+            } else {
+                binomialSteps.style.display = 'none';
+            }
+        };
+    </script>
 </body>
 </html>
